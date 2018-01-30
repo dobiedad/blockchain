@@ -6,8 +6,10 @@ class BlockChain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this._difficulty = 1;
+    this._miningReward = 50;
     this.pendingTransactions = [];
-    this.miningReward = 100;
+    this.maxCoinSupply = 21000000;
+    this.halfingRate = 210000;
   }
 
   createGenesisBlock() {
@@ -115,6 +117,15 @@ class BlockChain {
 
   get difficulty() {
     return this.calulateDifficulty();
+  }
+
+  get miningReward() {
+    const everyTwoHunderdAndTenThousandBlocks =
+      this.chain.length % this.halfingRate === 0;
+    if (everyTwoHunderdAndTenThousandBlocks) {
+      this._miningReward = this._miningReward / 2;
+    }
+    return this._miningReward;
   }
 }
 
