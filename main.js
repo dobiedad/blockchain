@@ -1,5 +1,4 @@
 const BlockChain = require("./BlockChain");
-const Block = require("./Block");
 const Transaction = require("./Transaction");
 const Wallet = require("./Wallet");
 
