@@ -19,21 +19,40 @@ class BlockChain {
     });
   }
 
-  minePendingTransactions(miningRewardAddress) {
+  minePendingTransactions(miningRewardAddress, minFee) {
     var lastBlock = this.chain[this.chain.length - 1];
+    const transactionsWantedByMiner = this.getPendingTransactionsForFeeHigherThan(
+      minFee
+    );
+    const transactionsNotWantedByMiner = this.pendingTransactions.filter(
+      transaction => transaction.fee < minFee
+    );
+    let totalTranactionFee = 0;
+    transactionsWantedByMiner.forEach(
+      transaction => (totalTranactionFee += transaction.fee)
+    );
     let block = new Block({
       timestamp: new Date(),
-      transactions: this.pendingTransactions,
+      transactions: transactionsWantedByMiner,
       previousHash: lastBlock.hash
     });
     this.addBlock(block);
-    this.pendingTransactions = [
+    this.pendingTransactions = transactionsNotWantedByMiner;
+    this.pendingTransactions.push(
       new Transaction({
-        from: "GenesisBlock",
+        from: "MiningRewardGod",
         to: miningRewardAddress,
-        amount: this.miningReward
+        amount: this.miningReward + totalTranactionFee,
+        fee: minFee
       })
-    ];
+    );
+  }
+
+  getPendingTransactionsForFeeHigherThan(fee) {
+    const transactionsWantedByMiner = this.pendingTransactions
+      .filter(transaction => transaction.fee >= fee)
+      .sort((a, b) => a.fee - b.fee);
+    return transactionsWantedByMiner;
   }
 
   createTransaction(transaction) {
