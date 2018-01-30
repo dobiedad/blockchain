@@ -1,5 +1,6 @@
 const Block = require("./Block");
 const Transaction = require("./Transaction");
+const Wallet = require("./Wallet");
 
 class BlockChain {
   constructor() {
@@ -27,9 +28,8 @@ class BlockChain {
     const transactionsNotWantedByMiner = this.pendingTransactions.filter(
       transaction => transaction.fee < minFee
     );
-    let totalTranactionFee = 0;
-    transactionsWantedByMiner.forEach(
-      transaction => (totalTranactionFee += transaction.fee)
+    const totalTranactionFee = this.calculateTotalTransactionFees(
+      transactionsWantedByMiner
     );
     let block = new Block({
       timestamp: new Date(),
@@ -48,6 +48,14 @@ class BlockChain {
     );
   }
 
+  calculateTotalTransactionFees(transactions) {
+    let totalTranactionFee = 0;
+    transactions.forEach(
+      transaction => (totalTranactionFee += transaction.fee)
+    );
+    return totalTranactionFee;
+  }
+
   getPendingTransactionsForFeeHigherThan(fee) {
     const transactionsWantedByMiner = this.pendingTransactions
       .filter(transaction => transaction.fee >= fee)
@@ -56,7 +64,16 @@ class BlockChain {
   }
 
   createTransaction(transaction) {
-    this.pendingTransactions.push(transaction);
+    const fromBalance = new Wallet(transaction.from).getBalance(this.chain);
+    if (fromBalance > transaction.amount) {
+      return this.pendingTransactions.push(transaction);
+    } else {
+      const error = `Ooops, ${transaction.from} is trying to send ${
+        transaction.amount
+      } but only has ${fromBalance}`;
+      console.log(error);
+      return new Error(error);
+    }
   }
 
   getLatestBlock() {

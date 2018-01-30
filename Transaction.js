@@ -1,3 +1,5 @@
+const Wallet = require("./Wallet");
+
 class Tranasction {
   constructor({ from, to, amount, fee }) {
     this.from = from;
